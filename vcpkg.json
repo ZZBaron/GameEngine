@@ -1,0 +1,11 @@
+{
+  "dependencies": [
+    "fmt",
+    "freetype",
+    "glew",
+    "glfw3",
+    "glm",
+    "opengl",
+    "eigen3"
+  ]
+}

@@ -1,0 +1,53 @@
+// Function to draw a sphere using triangles
+void drawSphere_old(float centerX, float centerY, float centerZ, float radius, int numSlices, int numStacks) {
+    // Ensure numSlices and numStacks are at least 2
+    if (numSlices < 2) numSlices = 2;
+    if (numStacks < 2) numStacks = 2;
+
+    // Compute the angle increment for the slices and stacks
+    float sliceStep = 2.0f * M_PI / numSlices;
+    float stackStep = M_PI / numStacks;
+
+    for (int i = 0; i < numStacks; ++i) {
+        float stackAngle1 = i * stackStep;
+        float stackAngle2 = (i + 1) * stackStep;
+
+        // Coordinates for the two consecutive stacks
+        float z1 = centerZ + radius * cos(stackAngle1);
+        float r1 = radius * sin(stackAngle1);
+        float z2 = centerZ + radius * cos(stackAngle2);
+        float r2 = radius * sin(stackAngle2);
+
+        for (int j = 0; j < numSlices; ++j) {
+            float sliceAngle1 = j * sliceStep;
+            float sliceAngle2 = (j + 1) * sliceStep;
+
+            // Vertices for the current slice
+            float x1 = centerX + r1 * cos(sliceAngle1);
+            float y1 = centerY + r1 * sin(sliceAngle1);
+            float x2 = centerX + r1 * cos(sliceAngle2);
+            float y2 = centerY + r1 * sin(sliceAngle2);
+            float x3 = centerX + r2 * cos(sliceAngle1);
+            float y3 = centerY + r2 * sin(sliceAngle1);
+            float x4 = centerX + r2 * cos(sliceAngle2);
+            float y4 = centerY + r2 * sin(sliceAngle2);
+
+            // Draw the two triangles for this slice
+            glBegin(GL_TRIANGLES);
+
+            // Triangle 1
+            glVertex3f(x1, y1, z1);
+            glVertex3f(x2, y2, z1);
+            glVertex3f(x3, y3, z2);
+
+            // Triangle 2
+            glVertex3f(x2, y2, z1);
+            glVertex3f(x4, y4, z2);
+            glVertex3f(x3, y3, z2);
+
+            glEnd();
+        }
+    }
+}
+
+
