@@ -44,10 +44,11 @@ public:
     static bool detectSphereSphere(const Sphere* sphereA, const Sphere* sphereB,
         const RigidBody& bodyA, const RigidBody& bodyB,
         ContactManifold& manifold) {
-        glm::vec3 posA = bodyA.COM;
-        glm::vec3 posB = bodyB.COM;
 
-        glm::vec3 direction = posB - posA;
+        glm::vec3 posA = sphereA->center;
+        glm::vec3 posB = sphereB->center;
+
+        glm::vec3 direction = posA - posB;
         float distance = glm::length(direction);
         float sumRadii = sphereA->radius + sphereB->radius;
 
@@ -55,9 +56,10 @@ public:
 
         // Generate single contact point
         ContactPoint contact;
-        contact.normal = glm::normalize(direction);
+        contact.normal = glm::normalize(direction); // Normal points from B to A
         contact.penetration = sumRadii - distance;
-        contact.position = posA + contact.normal * sphereA->radius;
+        // Contact point is at the surface of sphere B along the collision normal
+        contact.position = posB + contact.normal * sphereB->radius;
 
         manifold.contacts.push_back(contact);
         return true;

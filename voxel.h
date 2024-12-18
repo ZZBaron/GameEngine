@@ -46,7 +46,7 @@ public:
         voxel.textureID = textureID;
     }
 
-    void generateMesh(std::vector<RectPrism_6Quads>& meshes) { // mesh = shape
+    void generateMesh(std::vector<RectPrism>& meshes) { // mesh = shape
         for (int x = 0; x < CHUNK_SIZE_X; ++x) {
             for (int y = 0; y < CHUNK_SIZE_Y; ++y) {
                 for (int z = 0; z < CHUNK_SIZE_Z; ++z) {
@@ -94,7 +94,7 @@ public:
         }
     }
 
-    void generateMeshes(std::vector<RectPrism_6Quads>& meshes) {
+    void generateMeshes(std::vector<RectPrism>& meshes) {
         for (auto& chunkPair : chunks) {
             chunkPair.second.generateMesh(meshes);
         }

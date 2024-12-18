@@ -249,32 +249,6 @@ SimulationData generateSimulationData(const std::vector<RigidBody>& initialBodie
                     if (manifold.isColliding) {
                         CollisionSystem::resolveCollision(manifold, deltaTime);
 
-                        // Wake up bodies if they were sleeping
-                        //currentBodies[i].wake();
-                        //currentBodies[j].wake();
-
-                        // Handle resting contacts
-                        /*
-                        for (const auto& contact : manifold.contacts) {
-                            CollisionSystem::handleRestingContact(
-                                currentBodies[i],
-                                currentBodies[j],
-                                contact.position,
-                                contact.normal,
-                                contact.penetration,
-                                deltaTime
-                            );
-                        }
-
-                        // Apply stability corrections
-                        CollisionSystem::applyStabilityCorrections(
-                            currentBodies[i],
-                            currentBodies[j],
-                            manifold.contacts[0].normal,
-                            deltaTime
-                        );
-                        */
-
                         // Update states after collision resolution
                         if (!currentBodies[i].clamped) {
                             states[i].position = currentBodies[i].COM;

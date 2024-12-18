@@ -358,6 +358,7 @@ public:
             velocity += impulse / totalMass;
             glm::vec3 torque = glm::cross(contactPoint - shape->center, impulse);
             angularMomentum += torque;
+            angularVelocity = invInertiaTensor * angularMomentum;
         }
     }
 

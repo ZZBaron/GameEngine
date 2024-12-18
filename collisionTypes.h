@@ -22,3 +22,10 @@ struct ContactManifold {
     float restitution;
     bool isColliding;
 };
+
+// Add to collisionTypes.h
+struct ContactCache {
+    std::vector<ContactPoint> persistentContacts;
+    float accumulatedNormalImpulse = 0.0f;
+    float accumulatedTangentImpulse = 0.0f;
+};

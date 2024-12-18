@@ -169,9 +169,6 @@ void updateSimulation(std::vector<RigidBody>& bodies, float deltaTime) {
             // Update simulation playback time
             simulationPlaybackTime += deltaTime * simulationPlaybackSpeed;
 
-            std::cout << "sphere center: " << vec3_to_string(bodies[1].shape->center) << std::endl;
-            std::cout << "box center: " << vec3_to_string(bodies[2].shape->center) << std::endl;
-
 
             // Get interpolated state for current playback time
             auto state = simulationData.interpolateState(simulationPlaybackTime);
@@ -269,6 +266,7 @@ int main() {
     // Create a flat ground plane
     // maybe set clamped object to have mass std::numeric_limits<float>::max()? Although this causes numerical errors
 
+    
     float groundThickness = 7.0f;
     auto ground = std::make_shared<RectPrism>(glm::vec3(0.0f, 0.0f - groundThickness/2.0f -2.0f , 0.0f), 10.0f, groundThickness, 10.0f);
 	ground->color = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -280,30 +278,38 @@ int main() {
     ground->loadTexture(grassTexPATH);
     shapes.push_back(ground);
     bodies.push_back(groundRB);
+    
 
-    // Add after creating ground RectPrism
+    /*// Add after creating ground RectPrism
     std::cout << "Ground normals: " << std::endl;
     auto normals = ground->getFaceNormals();
     for (int i = 0; i < normals.size(); i++) {
         std::cout << "Face " << i << ": (" << normals[i].x << ", " << normals[i].y << ", " << normals[i].z << ")" << std::endl;
     }
+    */
 
-    auto sphere1 = std::make_shared<Sphere>(glm::vec3(0.0f, 2.0f, 0.0f), 0.5f, 40, 40);
-    sphere1->generateConvexHull();
+    
+    auto sphere1 = std::make_shared<Sphere>(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, 40, 40);
+    // sphere1->generateConvexHull();
     RigidBody sphereRB1(sphere1, 1.0f, sphere1->center, glm::vec3(0.0f, 0.0f, 0.0f));
-    sphereRB1.restitution = 0.5f;
-    sphereRB1.velocity = glm::vec3(0.0f, -5.0f, 0.0f);
+    sphereRB1.restitution = 1.0f;
+    sphereRB1.velocity = glm::vec3(0.0f, -1.0f, 0.0f);
     std::string metalTexPATH_string = getProjectRoot() + "/textures/rubber.jpg";
     const char* metalTexPATH = metalTexPATH_string.c_str();
     sphere1->loadTexture(metalTexPATH);
     shapes.push_back(sphere1);
     bodies.push_back(sphereRB1);
+    
 
-    /*auto sphere2 = std::make_shared<Sphere>(glm::vec3(3.0f, 2.0f, 0.0f), 0.5f, 40, 40);
+    /*
+    auto sphere2 = std::make_shared<Sphere>(glm::vec3(0.0f, 2.0f, 0.0f), 0.5f, 40, 40);
     RigidBody sphereRB2(sphere2, 1.0f, sphere2->center, glm::vec3(0.0f, 0.0f, 0.0f));
-	sphereRB2.velocity = glm::vec3(-0.5f, 0.0f, 0.0f);
+    sphereRB2.restitution = 1.0f;
+    sphereRB2.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+    sphere2->loadTexture(metalTexPATH);
     shapes.push_back(sphere2);
-    bodies.push_back(sphereRB2);*/
+    bodies.push_back(sphereRB2);
+    */
 
     /*
 	auto box = std::make_shared<RectPrism>(glm::vec3(0.0f, 3.0f, 0.0f), 0.5f, 0.5f, 0.5f);
@@ -340,7 +346,6 @@ int main() {
 	bodies.push_back(bounds);*/
 
     float shapeGenerationInterval = 0.1f;  // Generate spheres every 1 second
-
     float timeSinceLastGeneration = 0.0f;
 
 	//set up physics world
@@ -377,9 +382,7 @@ int main() {
         // Update light position
         lightPos = glm::vec3(5.0f * cos(0.1f * glfwGetTime()), 10.0f, 5.0f * sin(0.1f * glfwGetTime()));
         lightVisualizer->translate(lightPos - lightVisualizer->center);
-        
-		//spherePos = sphereRB1.shape->center;
-        //sphereCOM = sphereRB1.getCOM();
+       
 
         // Generate random spheres
         timeSinceLastGeneration += deltaTime_sys;
