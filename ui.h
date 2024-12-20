@@ -1,6 +1,7 @@
 // ui.h
 #pragma once
 #include "GameEngine.h"
+#include "rigidBody.h"
 #include "font.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -164,11 +165,60 @@ public:
                     extern glm::vec3 sphereCOM;
                     extern glm::vec3 sphereCentroid;
 
+
                     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Delta Time: %.3f", deltaTime_sys);
                     ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Light Position: (%.2f, %.2f, %.2f)",
                         lightPos.x, lightPos.y, lightPos.z);
                     ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Sphere Position: (%.2f, %.2f, %.2f)",
                         spherePos.x, spherePos.y, spherePos.z);
+
+                    ImGui::EndChild();
+                    ImGui::EndTabItem();
+                }
+
+                if (ImGui::BeginTabItem("Selected Object")) {
+                    ImGui::BeginChild("SelectedObjectTab", ImVec2(0, 0), true);
+
+                    extern std::shared_ptr<RigidBody> selectedRB; // Selected rigid body pointer
+
+                    if (selectedRB) {
+                        ImGui::Text("Selected Object Properties");
+                        ImGui::Separator();
+
+                        // Position
+                        glm::vec3 pos = selectedRB->getCOM();
+                        ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+
+                        // Mass
+                        ImGui::Text("Mass: %.2f", selectedRB->totalMass);
+
+                        // Velocity
+                        ImGui::Text("Velocity: (%.2f, %.2f, %.2f)",
+                            selectedRB->velocity.x,
+                            selectedRB->velocity.y,
+                            selectedRB->velocity.z);
+
+                        // Angular velocity
+                        ImGui::Text("Angular Velocity: (%.2f, %.2f, %.2f)",
+                            selectedRB->angularVelocity.x,
+                            selectedRB->angularVelocity.y,
+                            selectedRB->angularVelocity.z);
+
+                        // Linear momentum
+                        glm::vec3 linearMomentum = selectedRB->velocity * selectedRB->totalMass;
+                        ImGui::Text("Linear Momentum: (%.2f, %.2f, %.2f)",
+                            linearMomentum.x, linearMomentum.y, linearMomentum.z);
+
+                        // Angular momentum
+                        ImGui::Text("Angular Momentum: (%.2f, %.2f, %.2f)",
+                            selectedRB->angularMomentum.x,
+                            selectedRB->angularMomentum.y,
+                            selectedRB->angularMomentum.z);
+                    }
+                    else {
+                        ImGui::Text("No object selected");
+                        ImGui::Text("Click on an object to select it");
+                    }
 
                     ImGui::EndChild();
                     ImGui::EndTabItem();

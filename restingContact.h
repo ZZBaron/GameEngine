@@ -35,8 +35,8 @@ public:
         if (manifold.contacts.empty()) return;
         if (manifold.bodyA->clamped && manifold.bodyB->clamped) return;
 
-        RigidBody& bodyA = *const_cast<RigidBody*>(manifold.bodyA);
-        RigidBody& bodyB = *const_cast<RigidBody*>(manifold.bodyB);
+        RigidBody& bodyA = *const_cast<RigidBody*>(manifold.bodyA.get());
+        RigidBody& bodyB = *const_cast<RigidBody*>(manifold.bodyB.get());
 
         // Resolve penetration for all contact points
         for (const auto& contact : manifold.contacts) {

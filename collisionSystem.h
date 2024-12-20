@@ -15,27 +15,27 @@
 class CollisionSystem {
 public:
 
-    static ContactManifold generateManifold(const RigidBody& bodyA, const RigidBody& bodyB) {
+    static ContactManifold generateManifold(const std::shared_ptr<RigidBody>& bodyA, const std::shared_ptr<RigidBody>& bodyB) {
         ContactManifold manifold;
-        manifold.bodyA = &bodyA;
-        manifold.bodyB = &bodyB;
-        manifold.restitution = std::min(bodyA.restitution, bodyB.restitution);
+        manifold.bodyA = bodyA;
+        manifold.bodyB = bodyB;
+        manifold.restitution = std::min(bodyA->restitution, bodyB->restitution);
         manifold.isColliding = false;
 
         // First check AABB intersection
-        if (!bodyA.checkBroadPhaseCollision(bodyB)) {
+        if (!bodyA->checkBroadPhaseCollision(*bodyB)) {
             return manifold;
         }
 
         // If both shapes are convex and/or have bounding convex hulls, use GJK/EPA
-        if (bodyA.shape->isConvex && bodyB.shape->isConvex) {
+        if (bodyA->shape->isConvex && bodyB->shape->isConvex) {
+            std::cout << "Using GJK/EPA" << std::endl; // Add this line
             return ConvexCollisionDetector::generateManifold(
-                bodyA.shape.get(),
-                bodyB.shape.get(),
                 bodyA,
                 bodyB
             );
         }
+
 
         // Otherwise fall back to specific shape collision detection
         return SpecificCollisionDetector::generateManifold(bodyA, bodyB);
@@ -45,9 +45,9 @@ public:
         if (!manifold.isColliding || manifold.contacts.empty()) return;
         if (manifold.bodyA->clamped && manifold.bodyB->clamped) return;
 
-        debugCollision(*manifold.bodyA, *manifold.bodyB, manifold);
+        //debugCollision(*manifold.bodyA, *manifold.bodyB, manifold);
 
-        if (RestingContactSolver::isRestingContact(manifold)) {
+        if (false) { // check if RestingContactSolver::isRestingContact(manifold) is true
             RestingContactSolver::resolveRestingContacts(manifold, dt);
         }
         else {
@@ -58,7 +58,7 @@ public:
             }
         }
 
-        debugCollision(*manifold.bodyA, *manifold.bodyB, manifold);
+        //debugCollision(*manifold.bodyA, *manifold.bodyB, manifold);
 
         
     }
@@ -125,6 +125,12 @@ private:
                 glm::cross(bodyB.invInertiaTensor * glm::cross(rB, contact.normal), rB));
 
         // float jNoRot = (1.0f + restitution) * glm::dot(relativeVelNoRot, contact.normal) / totalInvMass;
+
+        // Add positional correction using Baumgarte stabilization
+        const float baumgarte = 0.1f;  // Stabilization factor
+        const float slop = 0.001f;     // Penetration allowance
+        float bias = std::max(0.0f, contact.penetration - slop) * (baumgarte / dt);
+        j += bias * (totalInvMass);
 
 
         glm::vec3 impulse = contact.normal * j;

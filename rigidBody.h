@@ -78,6 +78,7 @@ public:
     float sleepTimer; // for collision response
     std::unique_ptr<AABB> boundingBox;  // Add AABB member
 
+
     // Default constructor
     RigidBody()
         : totalMass(0.0), restitution(0.5f), clamped(false), collisionEnabled(true) {
@@ -107,20 +108,30 @@ public:
         invInertiaTensor(other.invInertiaTensor),
         totalMass(other.totalMass),
         restitution(other.restitution),
-        shape(other.shape),
         particles(other.particles),
         clamped(other.clamped),
         collisionEnabled(other.collisionEnabled),
         isAsleep(other.isAsleep),
         sleepTimer(other.sleepTimer) {
-        // Create a new AABB if the other has one
+        // Deep copy the shape
+        if (other.shape) {
+            if (auto sphere = dynamic_cast<Sphere*>(other.shape.get())) {
+                shape = std::make_shared<Sphere>(*sphere);
+            }
+            else if (auto rectPrism = dynamic_cast<RectPrism*>(other.shape.get())) {
+                shape = std::make_shared<RectPrism>(*rectPrism);
+            }
+            // Add other shape types as needed
+        }
+
+        // Deep copy the bounding box
         if (other.boundingBox) {
             boundingBox = std::make_unique<AABB>(*other.boundingBox);
         }
     }
 
     // Copy assignment operator
-    RigidBody& operator=(const RigidBody& other) {
+    RigidBody& operator=(RigidBody other) {
         if (this != &other) {
             COM = other.COM;
             velocity = other.velocity;
@@ -130,19 +141,26 @@ public:
             invInertiaTensor = other.invInertiaTensor;
             totalMass = other.totalMass;
             restitution = other.restitution;
-            shape = other.shape;
             particles = other.particles;
             clamped = other.clamped;
             collisionEnabled = other.collisionEnabled;
             isAsleep = other.isAsleep;
             sleepTimer = other.sleepTimer;
 
-            // Handle boundingBox copying
+            // Deep copy the shape
+            if (other.shape) {
+                if (auto sphere = dynamic_cast<Sphere*>(other.shape.get())) {
+                    shape = std::make_shared<Sphere>(*sphere);
+                }
+                else if (auto rectPrism = dynamic_cast<RectPrism*>(other.shape.get())) {
+                    shape = std::make_shared<RectPrism>(*rectPrism);
+                }
+                // Add other shape types as needed
+            }
+
+            // Deep copy the bounding box
             if (other.boundingBox) {
                 boundingBox = std::make_unique<AABB>(*other.boundingBox);
-            }
-            else {
-                boundingBox.reset();
             }
         }
         return *this;

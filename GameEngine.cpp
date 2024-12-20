@@ -82,7 +82,7 @@ bool trackLight = false; // Make camera same as light view
 
 // store shapes and bodies into vectors
 std::vector<std::shared_ptr<Shape>> shapes;
-std::vector<RigidBody> bodies;
+std::vector<std::shared_ptr<RigidBody>> bodies;
 // Physics world
 PhysicsWorld physicsWorld;
 
@@ -90,6 +90,9 @@ PhysicsWorld physicsWorld;
 glm::vec3 spherePos;
 glm::vec3 sphereCOM;
 glm::vec3 sphereCentroid;
+
+// for selected objects
+std::shared_ptr<RigidBody> selectedRB = nullptr; // Initialize selected rigid body pointer
 
 GLuint depthMap;
 GLuint depthMapFBO;
@@ -144,53 +147,6 @@ void setupScene() {
 }
 
 // function definitions before main
-void updateSimulation(std::vector<RigidBody>& bodies, float deltaTime) {
-
-    if (simulationMode) {
-        if (simulationData.timePoints.empty() || simulationPlaybackTime >= simulationData.timePoints.back()) {
-            //std::cout << vec3_to_string(bodies[0].COM) << std::endl;
-            //std::cout << vec3_to_string(bodies[0].shape->center) << std::endl;
-   //         std::cout << vec3_to_string(bodies[0].shape->rotationAxis) << std::endl;
-   //         std::cout << bodies[0].shape->rotationAngle << std::endl;
-            // Generate or regenerate simulation data
-            float t_start = 0.0f;
-            float t_end = 5.0f; // Simulate 10 seconds
-            float simDeltaTime = 0.01f; // 10ms time step
-            simulationData = generateSimulationData(bodies, t_start, t_end, simDeltaTime);
-            //std::cout << vec3_to_string(bodies[0].COM) << std::endl;
-            //std::cout << vec3_to_string(bodies[0].shape->center) << std::endl;
-   //         std::cout << vec3_to_string(bodies[0].shape->rotationAxis) << std::endl;
-   //         std::cout << bodies[0].shape->rotationAngle << std::endl;
-            simulationPlaybackTime = t_start;
-        }
-
-
-        if (play) {
-            // Update simulation playback time
-            simulationPlaybackTime += deltaTime * simulationPlaybackSpeed;
-
-
-            // Get interpolated state for current playback time
-            auto state = simulationData.interpolateState(simulationPlaybackTime);
-
-            // Update bodies with interpolated state
-            for (size_t i = 0; i < bodies.size(); ++i) {
-                if (!bodies[i].clamped) {
-                    bodies[i].updateCOM(state.positions[i]);
-                    bodies[i].velocity = state.velocities[i];
-                    bodies[i].setOrientation(state.orientations[i]);
-                    bodies[i].angularVelocity = state.angularVelocities[i];
-                }
-            }
-        }
-    }
-    else {
-        // Regular physics update
-        if (play) {
-            // updatePhysics(bodies, deltaTime);
-        }
-    }
-}
 
 void updatePhysicsWorld(float deltaTime) {
     // Replace the existing updateSimulation call with:
@@ -198,7 +154,12 @@ void updatePhysicsWorld(float deltaTime) {
 
     // After updating the simulation, update your local bodies vector
     for (size_t i = 0; i < bodies.size(); ++i) {
-        bodies[i] = *physicsWorld.bodies[i];
+        bodies[i] = physicsWorld.bodies[i];
+    }
+
+    //and shapes
+    for (size_t i = 0; i < bodies.size(); ++i) {
+        shapes[i] = physicsWorld.bodies[i]->shape;
     }
 
     // ... (keep the rest of your rendering code)
@@ -270,9 +231,9 @@ int main() {
     float groundThickness = 7.0f;
     auto ground = std::make_shared<RectPrism>(glm::vec3(0.0f, 0.0f - groundThickness/2.0f -2.0f , 0.0f), 10.0f, groundThickness, 10.0f);
 	ground->color = glm::vec3(0.0f, 1.0f, 0.0f);
-    RigidBody groundRB(ground, 1.0f, ground->center, glm::vec3(0.0f)); // infinite mass
-	groundRB.clamped = true; // static object
-    groundRB.restitution = 1.0f; // elastic
+    auto groundRB = std::make_shared<RigidBody>(ground, 1.0f, ground->center, glm::vec3(0.0f)); // infinite mass
+	groundRB->clamped = true; // static object
+    groundRB->restitution = 1.0f; // elastic
     std::string grassTexPATH_string = getProjectRoot() + "/textures/grass.jpg";
     const char* grassTexPATH = grassTexPATH_string.c_str();
     ground->loadTexture(grassTexPATH);
@@ -291,15 +252,16 @@ int main() {
     
     auto sphere1 = std::make_shared<Sphere>(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, 40, 40);
     // sphere1->generateConvexHull();
-    RigidBody sphereRB1(sphere1, 1.0f, sphere1->center, glm::vec3(0.0f, 0.0f, 0.0f));
-    sphereRB1.restitution = 1.0f;
-    sphereRB1.velocity = glm::vec3(0.0f, -1.0f, 0.0f);
+    auto sphereRB1 = std::make_shared<RigidBody>(sphere1, 1.0f, sphere1->center, glm::vec3(0.0f, 0.0f, 0.0f));
+    sphereRB1->restitution = 0.9f;
+    sphereRB1->velocity = glm::vec3(0.0f, -1.0f, 0.0f);
     std::string metalTexPATH_string = getProjectRoot() + "/textures/rubber.jpg";
     const char* metalTexPATH = metalTexPATH_string.c_str();
     sphere1->loadTexture(metalTexPATH);
     shapes.push_back(sphere1);
     bodies.push_back(sphereRB1);
     
+    selectedRB = sphereRB1;
 
     /*
     auto sphere2 = std::make_shared<Sphere>(glm::vec3(0.0f, 2.0f, 0.0f), 0.5f, 40, 40);
@@ -340,23 +302,19 @@ int main() {
     //generateRandomSpheres(shapes, bodies, boxMin, boxMax, 0.1f, 10, 10, 100);
 	//generateRandomBoxes(shapes, bodies, boxMin, boxMax, 0.1f, 0.1f, 0.1f, 10);
 
-    // define bounding box
-	/*RectPrismBounds bounds(boxMinCollision, boxMaxCollision);
-	shapes.push_back(bounds.shape);
-	bodies.push_back(bounds);*/
-
     float shapeGenerationInterval = 0.1f;  // Generate spheres every 1 second
     float timeSinceLastGeneration = 0.0f;
 
 	//set up physics world
     for (auto& body : bodies) {
-        physicsWorld.bodies.push_back(std::make_shared<RigidBody>(body));
+        physicsWorld.bodies.push_back(std::make_shared<RigidBody>(*body));
     }
 
     // Set initial PhysicsWorld parameters
     physicsWorld.simulationMode = simulationMode;
     physicsWorld.play = play;
     physicsWorld.simulationPlaybackSpeed = simulationPlaybackSpeed;
+    physicsWorld.simulationEndTime = 100.0f;
 
     // set up inital cam view
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
@@ -466,7 +424,7 @@ int main() {
         }
 
         for (size_t i = 0; i < bodies.size(); ++i) {
-            bodies[i].boundingBox->drawWireFrame(shaders, view, projection, lightSpaceMatrix, depthMap);
+            bodies[i]->boundingBox->drawWireFrame(shaders, view, projection, lightSpaceMatrix, depthMap);
         }
 
         // glViewport(0, 0, screenWidth / 4, screenHeight / 4); // Render to a quarter of the screen

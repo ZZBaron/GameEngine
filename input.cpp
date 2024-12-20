@@ -4,10 +4,12 @@
 #include "ui.h"
 #include "camera.h"
 #include "console.h"
+#include "selection.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
 
 bool consoleInputOnly = false;
 std::map<int, bool> keyStates; // Map to track key states
@@ -54,6 +56,22 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     static double lastX = 400.0;
     static double lastY = 300.0;
     static bool firstMouse = true;
+
+
+    // Only allow object selection when camera is NOT in movement mode
+    if (!camstate && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f),
+            (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+        Ray ray = SelectionSystem::screenToWorldRay(xpos, ypos, width, height,
+            projection, view);
+        selectedRB = SelectionSystem::findIntersectedBody(ray, bodies);
+    }
+
 
     // Process mouse movement only if camstate is true
     if (camstate) {

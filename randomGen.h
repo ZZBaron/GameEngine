@@ -16,7 +16,7 @@ glm::vec3 randomColor() {
 }
 
 void generateRandomSpheres(std::vector<std::shared_ptr<Shape>>& shapes,
-    std::vector<RigidBody>& bodies,
+    std::vector<std::shared_ptr<RigidBody>>& bodies,
     const glm::vec3& boxMin,
     const glm::vec3& boxMax,
     float radius,
@@ -39,8 +39,8 @@ void generateRandomSpheres(std::vector<std::shared_ptr<Shape>>& shapes,
         sphere->color = randomColor();
 
         // Create RigidBody for the sphere
-        RigidBody sphereRB(sphere, mass, position);
-        sphereRB.restitution = 0.5; // how bouncy
+        auto sphereRB = std::make_shared<RigidBody>(sphere, mass, position);
+        sphereRB->restitution = 0.5; // how bouncy
 
         // Add to vectors
         shapes.push_back(sphere);
@@ -49,7 +49,7 @@ void generateRandomSpheres(std::vector<std::shared_ptr<Shape>>& shapes,
 }
 
 void generateRandomBoxes(std::vector<std::shared_ptr<Shape>>& shapes,
-    std::vector<RigidBody>& bodies,
+    std::vector<std::shared_ptr<RigidBody>>& bodies,
     const glm::vec3& boundBoxMin,
     const glm::vec3& boundBoxMax,
     const float sideLength_a,
@@ -74,8 +74,8 @@ void generateRandomBoxes(std::vector<std::shared_ptr<Shape>>& shapes,
         rectPrism->color = randomColor();
 
         // Create RigidBody for the sphere
-        RigidBody rectPrismRB(rectPrism, mass, position);
-        rectPrismRB.restitution = 0.5; // how bouncy
+        auto rectPrismRB = std::make_shared <RigidBody>(rectPrism, mass, position);
+        rectPrismRB->restitution = 0.5; // how bouncy
 
         // Add to vectors
         shapes.push_back(rectPrism);

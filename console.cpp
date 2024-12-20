@@ -8,7 +8,7 @@
 
 extern GLuint textShaderProgram;
 extern std::vector<std::shared_ptr<Shape>> shapes;
-extern std::vector<RigidBody> bodies;
+extern std::vector<std::shared_ptr<RigidBody>> bodies;
 
 Console& Console::getInstance() {
     static Console instance;
@@ -128,7 +128,7 @@ void initializeConsole() {
         if (shapes.size() > 1 && bodies.size() > 1) {
             glm::vec3 translation(x, y, z);
             shapes[1]->translate(translation);
-            bodies[1].translate(translation);
+            bodies[1]->translate(translation);
             Console::getInstance().addCommandHistory("Sphere1 translated by (" + args[0] + ", " + args[1] + ", " + args[2] + ")");
         }
         else {

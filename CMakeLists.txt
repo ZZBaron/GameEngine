@@ -41,7 +41,7 @@ add_executable (GameEngine "GameEngine.cpp" "GameEngine.h"
 "vender/imgui/backends/imgui_impl_glfw.h" "vender/imgui/backends/imgui_impl_opengl3.h"
 ${IMGUI_SOURCES}
  "AABB.h" "convexCollision.h" "collisionTypes.h" "specificCollision.h" "restingContact.h" "texture.h"
-"stb_image.h"  "stb_image_impl.cpp" "contactManager.h")
+"stb_image.h"  "stb_image_impl.cpp" "contactManager.h" "selection.h" "selection.cpp")
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

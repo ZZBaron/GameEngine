@@ -4,34 +4,34 @@
 
 class SpecificCollisionDetector {
 public:
-    static ContactManifold generateManifold(const RigidBody& bodyA, const RigidBody& bodyB) {
+    static ContactManifold generateManifold(const std::shared_ptr<RigidBody>& bodyA, const std::shared_ptr<RigidBody>& bodyB) {
         ContactManifold manifold;
-        manifold.bodyA = &bodyA;
-        manifold.bodyB = &bodyB;
-        manifold.restitution = std::min(bodyA.restitution, bodyB.restitution);
+        manifold.bodyA = bodyA;
+        manifold.bodyB = bodyB;
+        manifold.restitution = std::min(bodyA->restitution, bodyB->restitution);
         manifold.isColliding = false;
 
         // Determine shape types and call appropriate collision detection
-        auto* sphereA = dynamic_cast<Sphere*>(bodyA.shape.get());
-        auto* sphereB = dynamic_cast<Sphere*>(bodyB.shape.get());
-        auto* boxA = dynamic_cast<RectPrism*>(bodyA.shape.get());
-        auto* boxB = dynamic_cast<RectPrism*>(bodyB.shape.get());
+        auto* sphereA = dynamic_cast<Sphere*>(bodyA->shape.get());
+        auto* sphereB = dynamic_cast<Sphere*>(bodyB->shape.get());
+        auto* boxA = dynamic_cast<RectPrism*>(bodyA->shape.get());
+        auto* boxB = dynamic_cast<RectPrism*>(bodyB->shape.get());
 
         if (sphereA && sphereB) {
-            manifold.isColliding = detectSphereSphere(sphereA, sphereB, bodyA, bodyB, manifold);
+            manifold.isColliding = detectSphereSphere(sphereA, sphereB, *bodyA, *bodyB, manifold);
         }
         else if (sphereA && boxB) {
-            manifold.isColliding = detectSphereBox(sphereA, boxB, bodyA, bodyB, manifold);
+            manifold.isColliding = detectSphereBox(sphereA, boxB, *bodyA, *bodyB, manifold);
         }
         else if (boxA && sphereB) {
-            manifold.isColliding = detectSphereBox(sphereB, boxA, bodyB, bodyA, manifold);
+            manifold.isColliding = detectSphereBox(sphereB, boxA, *bodyB, *bodyA, manifold);
             // Flip normals since bodies were swapped
             for (auto& contact : manifold.contacts) {
                 contact.normal = -contact.normal;
             }
         }
         else if (boxA && boxB) {
-            manifold.isColliding = detectBoxBox(boxA, boxB, bodyA, bodyB, manifold);
+            manifold.isColliding = detectBoxBox(boxA, boxB, *bodyA, *bodyB, manifold);
         }
 
         if (manifold.isColliding) {

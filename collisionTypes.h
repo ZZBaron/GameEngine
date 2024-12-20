@@ -17,13 +17,13 @@ struct ContactPoint {
 
 struct ContactManifold {
     std::vector<ContactPoint> contacts;
-    const RigidBody* bodyA;
-    const RigidBody* bodyB;
+    std::shared_ptr<const RigidBody> bodyA;  // Changed from const RigidBody*
+    std::shared_ptr<const RigidBody> bodyB;  // Changed from const RigidBody*
     float restitution;
     bool isColliding;
 };
 
-// Add to collisionTypes.h
+// Maybe use a cache
 struct ContactCache {
     std::vector<ContactPoint> persistentContacts;
     float accumulatedNormalImpulse = 0.0f;

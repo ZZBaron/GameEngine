@@ -33,15 +33,16 @@ public:
         }
     };
 
-    static ContactManifold generateManifold(
-        const Shape* shapeA, const Shape* shapeB,
-        const RigidBody& bodyA, const RigidBody& bodyB) {
+    static ContactManifold generateManifold(const std::shared_ptr<RigidBody>& bodyA, const std::shared_ptr<RigidBody>& bodyB) {
 
         ContactManifold manifold;
-        manifold.bodyA = &bodyA;
-        manifold.bodyB = &bodyB;
-        manifold.restitution = std::min(bodyA.restitution, bodyB.restitution);
+        manifold.bodyA = bodyA;
+        manifold.bodyB = bodyB;
+        manifold.restitution = std::min(bodyA->restitution, bodyB->restitution);
         manifold.isColliding = false;
+
+        auto shapeA = bodyA->shape.get();
+        auto shapeB = bodyB->shape.get();
 
         // First check intersection using GJK
         Simplex simplex;
