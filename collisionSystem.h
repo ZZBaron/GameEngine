@@ -127,10 +127,38 @@ private:
         // float jNoRot = (1.0f + restitution) * glm::dot(relativeVelNoRot, contact.normal) / totalInvMass;
 
         // Add positional correction using Baumgarte stabilization
-        const float baumgarte = 0.1f;  // Stabilization factor
-        const float slop = 0.001f;     // Penetration allowance
-        float bias = std::max(0.0f, contact.penetration - slop) * (baumgarte / dt);
+        
+        const float baumgarte = 0.15f;    // Moderate correction (not too weak, not too bouncy)
+        const float slopb = 0.001f;       // Small but reasonable penetration allowance
+        float bias = std::max(0.0f, contact.penetration - slopb) * (baumgarte / dt);
+        
+
+        // adjusted Baumgarte
+        /*
+        float omega = 4.0f*glm::pi<float>() / dt;  // Natural frequency, could instead be sqrt(k/m);  // where k is stiffness and m is mass
+        float beta = 1.0f / (dt * omega * omega);
+        float gamma = 1.0f / (dt * omega);
+        const float slop = 0.001f;  // 1mm tolerance
+        float bias = (beta / dt) * std::max(0.0f, contact.penetration - slop) +
+            gamma * velAlongNormal;
+        */
+
+
+        // idea:
+        // Base slop on the size of the objects involved
+        // float characteristicLength = std::min(bodyA->shape->getBoundingRadius(),
+        //     bodyB->shape->getBoundingRadius());
+        // float slop = characteristicLength * 0.001f;  // 0.1% of object size
+
+        // apply position correction instead of baumgarte
+        
+
+        // if using baumgarte
         j += bias * (totalInvMass);
+
+        //The key principles are:
+        //baumgarte: Lower values(like 0.01 - 0.02) give smoother but slower correction
+        //slop : Higher values(like 0.01 - 0.03) allow more penetration but reduce jitter
 
 
         glm::vec3 impulse = contact.normal * j;
